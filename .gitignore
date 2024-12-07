@@ -1,0 +1,104 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+
+# Set up the WebDriver
+driver = webdriver.Chrome()
+
+# Open the SauceDemo website
+driver.get("https://www.saucedemo.com/")
+
+# ===== Test 1: Verify the width and height of the text area =====
+username_field = driver.find_element(By.ID, "user-name")
+password_field = driver.find_element(By.ID, "password")
+
+username_dimensions = username_field.size
+password_dimensions = password_field.size
+
+print(f"Username field dimensions: {username_dimensions}")
+print(f"Password field dimensions: {password_dimensions}")
+
+# ===== Test 2: Verify placeholder text visible in the text area =====
+username_placeholder = username_field.get_attribute("placeholder")
+password_placeholder = password_field.get_attribute("placeholder")
+
+assert username_placeholder == "Username", "Username placeholder text is incorrect"
+assert password_placeholder == "Password", "Password placeholder text is incorrect"
+print("Placeholder texts are correct!")
+
+# ===== Test 3: Verify that the text area should be locked and fixed =====
+username_resizable = username_field.value_of_css_property("resize")
+password_resizable = password_field.value_of_css_property("resize")
+
+assert username_resizable == "none", "Username field should not be resizable"
+assert password_resizable == "none", "Password field should not be resizable"
+print("Text areas are locked and fixed!")
+
+# ===== Test 4: Verify the button color same as per design =====
+login_button = driver.find_element(By.ID, "login-button")
+button_color = login_button.value_of_css_property("background-color")
+assert button_color == "rgba(226, 35, 26, 1)", f"Button color is {button_color}, not as expected"
+print("Button color is correct!")
+
+# ===== Test 5: Verify button enabled/clickable or not =====
+is_button_enabled = login_button.is_enabled()
+assert is_button_enabled, "Login button is not enabled"
+print("Login button is enabled and clickable!")
+
+# ===== Test 6: Verify tooltip added and shown if required =====
+tooltip = login_button.get_attribute("title")
+assert tooltip == "Click to login", f"Tooltip text is incorrect or missing: {tooltip}"
+print("Tooltip is present and correct!")
+
+# ===== Test 7: Verify user can log in only with valid credentials =====
+username_field.clear()
+password_field.clear()
+username_field.send_keys("standard_user")
+password_field.send_keys("secret_sauce")
+
+login_button.click()
+assert "inventory.html" in driver.current_url, "Login failed with valid credentials"
+print("Login successful with valid credentials!")
+
+# ===== Test 8: Verify error message when entering invalid credentials =====
+driver.get("https://www.saucedemo.com/")  # Reset the page
+username_field = driver.find_element(By.ID, "user-name")
+password_field = driver.find_element(By.ID, "password")
+login_button = driver.find_element(By.ID, "login-button")
+
+username_field.clear()
+password_field.clear()
+username_field.send_keys("invalid_user")
+password_field.send_keys("wrong_password")
+login_button.click()
+
+error_message = driver.find_element(By.XPATH, "//h3[@data-test='error']").text
+assert "Username and password do not match" in error_message, f"Unexpected error message: {error_message}"
+print("Error message displayed correctly for invalid credentials!")
+
+# ===== Test 9: Verify clear text icon present in the text area =====
+# Assuming there is a clear text icon present in the input field
+# Uncomment and update this section based on the actual site's implementation
+# clear_icon = driver.find_element(By.CLASS_NAME, "clear-icon")  # Update class if needed
+# assert clear_icon.is_displayed(), "Clear text icon is not present!"
+# print("Clear text icon is present.")
+
+# ===== Test 10: Verify the button changes color on mouse hover =====
+actions = ActionChains(driver)
+actions.move_to_element(login_button).perform()
+hover_color = login_button.value_of_css_property("background-color")
+expected_hover_color = "rgba(200, 30, 20, 1)"  # Example color
+assert hover_color == expected_hover_color, f"Hover color is incorrect: {hover_color}"
+print("Hover color is correct!")
+
+# ===== Test 11: Verify the reset button sets default values =====
+# Assuming there is a reset button present on the login page
+# Uncomment and update this section based on the actual site's implementation
+# reset_button = driver.find_element(By.ID, "reset-button")  # Update ID if necessary
+# reset_button.click()
+# assert username_field.get_attribute("value") == "", "Username field is not cleared!"
+# assert password_field.get_attribute("value") == "", "Password field is not cleared!"
+# print("Reset button works correctly!")
+
+# Close the WebDriver
+driver.quit()
